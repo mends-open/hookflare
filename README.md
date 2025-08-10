@@ -1,43 +1,66 @@
-# Astro Starter Kit: Minimal
+# Hookflare
+
+A lightweight webhook forwarder and logger built with [Astro](https://astro.build) and Cloudflare. Hookflare lets you register temporary endpoints, forward incoming requests to your own server and inspect all traffic later.
+
+## Features
+- Create throwaway endpoints with a single API call.
+- Forward requests to a target URL and return the upstream response.
+- Log every request and response to Cloudflare D1.
+- Browse recent requests from a simple logs page.
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- A Cloudflare account with a KV namespace named `ENDPOINTS` and a D1 database named `LOGS`.
+
+Apply the database schema:
 
 ```sh
-npm create astro@latest -- --template minimal
+wrangler d1 execute LOGS --file=./schema.sql
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+### Install & Run
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```sh
+npm install
+npm run dev
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+This starts a local development server on `http://localhost:4321`. When using `wrangler pages dev`, ensure your KV namespace and D1 database are bound.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Usage
 
-Any static assets, like images, can be placed in the `public/` directory.
+### Register an endpoint
 
-## 🧞 Commands
+```sh
+curl -X POST http://localhost:4321/register \
+  -H 'content-type: application/json' \
+  --data '{"url":"https://example.com/target"}'
+```
 
-All commands are run from the root of the project, from a terminal:
+The response returns the path to your new endpoint:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+```json
+{"endpoint":"/<id>"}
+```
 
-## 👀 Want to learn more?
+### Send requests through the endpoint
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Any request sent to `/<id>` will be forwarded to the original URL. The request and response are stored for inspection.
+
+### View logs
+- Visit `http://localhost:4321/logs` for a basic UI.
+- Query the API:
+
+```sh
+curl http://localhost:4321/api/logs?endpoint=<id>
+```
+
+## Building for Production
+
+```sh
+npm run build
+```
+
+Deploy the generated `dist/` to Cloudflare Pages with the same bindings for `ENDPOINTS` and `LOGS`.
