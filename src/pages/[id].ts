@@ -5,6 +5,8 @@ interface Env {
   LOGS: D1Database;
 }
 
+export const prerender = false;
+
 function toBase64(buffer: ArrayBuffer): string {
   let binary = "";
   const bytes = new Uint8Array(buffer);

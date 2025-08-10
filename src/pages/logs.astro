@@ -1,0 +1,54 @@
+---
+import "../styles/global.css";
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Webhook Logs</title>
+  </head>
+  <body class="p-8 max-w-5xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4">Webhook Logs</h1>
+    <form id="filterForm" class="flex gap-2 mb-4">
+      <input name="endpoint" placeholder="Endpoint ID" class="border p-2 rounded" />
+      <input name="status" type="number" placeholder="Status" class="border p-2 rounded w-24" />
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Filter</button>
+    </form>
+    <table class="min-w-full border text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-2 border">ID</th>
+          <th class="p-2 border">Endpoint</th>
+          <th class="p-2 border">Timestamp</th>
+          <th class="p-2 border">Method</th>
+          <th class="p-2 border">Status</th>
+        </tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
+    <script>
+      async function load() {
+        const params = new URLSearchParams(new FormData(document.getElementById('filterForm')));
+        const res = await fetch('/api/logs?' + params.toString());
+        const data = await res.json();
+        const body = document.getElementById('logBody');
+        body.innerHTML = '';
+        data.forEach(l => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="p-2 border">${l.id}</td>
+            <td class="p-2 border">${l.endpoint}</td>
+            <td class="p-2 border">${l.ts}</td>
+            <td class="p-2 border">${l.req_method}</td>
+            <td class="p-2 border">${l.res_status ?? ''}</td>
+          `;
+          body.appendChild(tr);
+        });
+      }
+      document.getElementById('filterForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        load();
+      });
+      load();
+    </script>
+  </body>
+</html>

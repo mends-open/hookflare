@@ -1,16 +1,43 @@
 ---
-
+import "../styles/global.css";
 ---
-
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hookflare</title>
+  </head>
+  <body class="p-8 max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4">Webhook Endpoints</h1>
+    <form id="regForm" class="flex gap-2 mb-6">
+      <input id="urlInput" type="url" required placeholder="Target URL" class="flex-1 border p-2 rounded" />
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Register</button>
+    </form>
+    <ul id="endpointList" class="space-y-2"></ul>
+    <script>
+      async function load() {
+        const res = await fetch('/api/endpoints');
+        const data = await res.json();
+        const list = document.getElementById('endpointList');
+        list.innerHTML = '';
+        data.forEach(e => {
+          const li = document.createElement('li');
+          li.className = 'border p-2 rounded';
+          const a = document.createElement('a');
+          a.href = '/logs?endpoint=' + e.id;
+          a.className = 'text-blue-600 hover:underline';
+          a.textContent = `${e.id} → ${e.url}`;
+          li.appendChild(a);
+          list.appendChild(li);
+        });
+      }
+      document.getElementById('regForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const url = document.getElementById('urlInput').value;
+        await fetch('/register', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({url})});
+        e.target.reset();
+        load();
+      });
+      load();
+    </script>
+  </body>
 </html>
